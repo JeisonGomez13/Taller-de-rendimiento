@@ -18,30 +18,37 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
 
     // GET /api/products/search: Búsqueda sin optimización (LIKE '%producto%') 
 
-    // @Query("SELECT p FROM Producto p " +
-    //        "JOIN p.subcategoria s " +
-    //        "JOIN s.categoria c " +
-    //        "WHERE (:query IS NULL OR LOWER(p.nombreProducto) LIKE LOWER(CONCAT('%', COALESCE(:query, '%')))) " +
-    //        "AND (:category IS NULL OR LOWER(c.nombreCategoria) = LOWER(COALESCE(:category))) " +
-    //        "AND (:minPrice IS NULL OR p.precioProducto >= :minPrice)")
-    // List<Producto> searchProducts(
-    //         @Param("query") String query,
-    //         @Param("category") String category,
-    //         @Param("minPrice") BigDecimal minPrice);
-
-     @Query("SELECT p FROM Producto p " +
+    @Query("SELECT p FROM Producto p " +
         "JOIN p.subcategoria s " +
         "JOIN s.categoria c " +
-        // CORRECCIÓN CON COALESCE: Asegura que LOWER() no reciba un NULL sin tipo.
-        // Si :query es NULL, se compara con sí mismo (lo cual será TRUE si se pasa la primera condición)
+        // Filtro de búsqueda (LIKE)
+        // Si :query es NULL, COALESCE lo reemplaza con p.nombreProducto, y la búsqueda es TRUE.
         "WHERE (LOWER(p.nombreProducto) LIKE LOWER(CONCAT('%', COALESCE(:query, p.nombreProducto), '%')) OR :query IS NULL) " +
+        
+        // Filtro de categoría (=)
+        // Si :category es NULL, COALESCE lo reemplaza con c.nombreCategoria, y la comparación es TRUE.
         "AND (LOWER(c.nombreCategoria) = LOWER(COALESCE(:category, c.nombreCategoria)) OR :category IS NULL) " +
+        
+        // Filtro de precio (>=)
         "AND (:minPrice IS NULL OR p.precioProducto >= :minPrice)")
-    Page<Producto> searchProducts(
+    List<Producto> searchProducts(
         @Param("query") String query,
         @Param("category") String category,
-        @Param("minPrice") BigDecimal minPrice,
-        Pageable pageable);
+        @Param("minPrice") BigDecimal minPrice);
+
+    //  @Query("SELECT p FROM Producto p " +
+    //     "JOIN p.subcategoria s " +
+    //     "JOIN s.categoria c " +
+    //     // CORRECCIÓN CON COALESCE: Asegura que LOWER() no reciba un NULL sin tipo.
+    //     // Si :query es NULL, se compara con sí mismo (lo cual será TRUE si se pasa la primera condición)
+    //     "WHERE (LOWER(p.nombreProducto) LIKE LOWER(CONCAT('%', COALESCE(:query, p.nombreProducto), '%')) OR :query IS NULL) " +
+    //     "AND (LOWER(c.nombreCategoria) = LOWER(COALESCE(:category, c.nombreCategoria)) OR :category IS NULL) " +
+    //     "AND (:minPrice IS NULL OR p.precioProducto >= :minPrice)")
+    // Page<Producto> searchProducts(
+    //     @Param("query") String query,
+    //     @Param("category") String category,
+    //     @Param("minPrice") BigDecimal minPrice,
+    //     Pageable pageable);
 
     // GET /api/inventory/low-stock
     List<Producto> findByCantidadProductoLessThan(Integer threshold);

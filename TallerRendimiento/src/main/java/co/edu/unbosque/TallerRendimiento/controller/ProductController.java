@@ -1,6 +1,8 @@
 package co.edu.unbosque.TallerRendimiento.controller;
 
 import java.math.BigDecimal;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +34,7 @@ public class ProductController {
     @GetMapping("/search")
     @Operation(summary = "Búsqueda de Productos con paginación",
                description = "Busca productos por nombre, categoría y precio mínimo. Incluye paginación.")
-    public Page<Producto> searchProducts(
+    public List<Producto> searchProducts(
             @RequestParam(required = false)
             @Parameter(description = "Término de búsqueda parcial (ej: laptop)")
             String query,
@@ -43,19 +45,9 @@ public class ProductController {
 
             @RequestParam(required = false)
             @Parameter(description = "Precio mínimo del producto")
-            BigDecimal minPrice,
+            BigDecimal minPrice) {
 
-            // 🔹 Parámetros de paginación
-            @RequestParam(defaultValue = "0")
-            @Parameter(description = "Número de página (empezando desde 0)")
-            int page,
-
-            @RequestParam(defaultValue = "10")
-            @Parameter(description = "Cantidad de productos por página")
-            int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return productService.buscarProductos(query, category, minPrice, pageable);
+        return productService.buscarProductos(query, category, minPrice);
     }
 
     // ENDPOINT: GET /api/products/{id}/details
